@@ -1,0 +1,49 @@
+import PySimpleGUI as sg
+import paramiko
+
+# Connection to Router
+host = 'hostname_or_ip_address'
+port = 22
+user = "username"
+passwd = 'password'
+
+
+
+# Define the window's contents
+layout = [[sg.Text("Username")],
+          [sg.Input(key='-Username-')],
+          [sg.Text("Password")],
+          [sg.Input(key='-Password-')],
+          [sg.Text(size=(40,1), key='-OUTPUT-')],
+          [sg.Button('Ok'), sg.Button('Quit')]]
+
+
+# Create the window
+window = sg.Window('Window Title', layout)
+
+# Display and interact with the Window using an Event Loop
+while True:
+    event, values = window.read()
+    # See if user wants to quit or window was closed
+    if event == sg.WINDOW_CLOSED or event == 'Quit':
+        break
+    # Output a message to the window
+    window['-OUTPUT-'].update('User ' + values['-Username-'] + " created")
+
+
+sstp_user = values['-Username-']
+sstp_passwd = values['-Password-']
+
+command = 'ppp/secret/add name={} password={} profile=default service=sstp'.format(sstp_user, sstp_passwd)
+
+
+client = paramiko.SSHClient()
+client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+client.connect(host, port, user, passwd)
+stdin, stdout, stderr = client.exec_command(command)
+
+client.close()
+
+# Finish up by removing from the screen
+window.close()
+
